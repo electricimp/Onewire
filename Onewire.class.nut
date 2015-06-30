@@ -81,7 +81,8 @@ class OneWire
 
   function getDevice(deviceIndex) {
     // Returns a specific device’s ID
-    eturn _slaves[deviceIndex];
+    if (deviceIndex < 0 || deviceIndex > _slaves.len()) return null;
+    return _slaves[deviceIndex];
   }
 
 	function getDevices() {
