@@ -64,7 +64,7 @@ if (ow.reset()) {
 
 ### listSlaves()
 
-This method enumerates all the 1-Wire devices on the bus, storing connected devices’ unique IDs internally. See the further methods below for means to access these devices. It is implicitly called by *init()*.
+This method enumerates all the 1-Wire devices on the bus, storing connected devices’ unique IDs internally. See the further methods below for means to access these devices. It is implicitly called by [*init()*](#init).
 
 ```squirrel
 if (ow.reset()) {
@@ -79,7 +79,7 @@ if (ow.reset()) {
 
 ### getDeviceCount()
 
-This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called *init()* or *reset()* and *listSlaves()*.
+This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called [*init()*](#init) or [*reset()*](#reset) and [*listSlaves()*](#listslaves).
 
 ```squirrel
 local success = ow.init();
@@ -91,7 +91,7 @@ if (success == 0) {
 
 ### getDevices()
 
-This method returns an array in which the ID of each device on the 1-Wire bus is stored. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using *init()* or *listSlaves()*).
+This method returns an array in which the ID of each device on the 1-Wire bus is stored. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using [*init()*](#init) or [*listSlaves()*](#listslaves)).
 
 ```squirrel
 local success = ow.init();
@@ -123,7 +123,7 @@ if (success == 0) {
 
 ### getErrorCode()
 
-This method returns any error code (or 0 if there was no error) from the last bus reset. See *reset()*, above, for example code.
+This method returns any error code (or 0 if there was no error) from the last bus reset. See [*reset()*](#reset), above, for example code.
 
 ### writeByte(*byte*)
 
