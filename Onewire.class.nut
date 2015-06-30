@@ -1,4 +1,4 @@
-class OneWire
+class Onewire
 {
   static version = [1,0,0];
   
