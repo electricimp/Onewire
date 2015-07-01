@@ -17,6 +17,8 @@ Optionally, you may also pass a debugging flag: pass `true` to trigger debug log
 The constructor returns `null` if no UART bus is passed into it.
 
 ```squirrel
+#require "Onewire.class.nut:1.0.0"
+
 ow <- Onewire(hardware.uart12);
 ```
 
