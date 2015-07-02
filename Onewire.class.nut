@@ -14,7 +14,7 @@ class Onewire
     _currentId = null;
     _devices = null;
     _nextDevice = 0;
-    _readErrorReason = READ_NO_ERR;
+    _readErrorReason = 0;
     _errs = null;
     _debugFlag = false;
 
