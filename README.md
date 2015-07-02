@@ -28,12 +28,7 @@ ow <- Onewire(hardware.uart12);
 
 Call this method to prepare the 1-Wire/UART bus for use. It resets the bus and discovers the bus’ devices.
 
-It returns 0 for success, or an error code to indicate a bus-read failure:
-
-| Code                        | Meaning                      |
-| --------------------------- | ---------------------------- |
-| Onewire.READ_ERR_NO_DEVICES | No 1-Wire devices connected. |
-| Onewire.READ_ERR_NO_BUS     | No 1-Wire circuit detected.  |
+It returns `true` if the bus was successfully initialized (and had devices), and `false` otherwise. If the init() method returns `false`, you can call *getErrorCode* for more information.
 
 ```squirrel
 local success = ow.init();
@@ -41,13 +36,7 @@ if (!success) {
     // Report error. Note if the Onewire object instantiated in
     // debug mode, the object will report errors
     local err = ow.getErrorCode();
-    if (err == Onewire.READ_ERR_NO_DEVICES) {
-        server.log("No devices found on 1-Wire bus.");
-    }
-    if (err == Onewire.READ_ERR_NO_BUS) {
-        server.log("Could not find 1-Wire bus.")
-    }
-    server.log("1-Wire error.");
+    server.log(err.msg);
     return;
 }
 // Perform tasks on the 1-Wire bus...
@@ -67,7 +56,7 @@ if (ow.reset()) {
 } else {
     // Display error code on LED
     local err = ow.getErrorCode();
-    led.display("Error: " + err);
+    led.display("Error: " + err.msg);
 }
 ```
 
@@ -132,7 +121,39 @@ if (success) {
 
 ### getErrorCode()
 
-This method returns an error code (or 0 if there was no error) from the last bus reset. See [*reset()*](#reset), above, for example code.
+This method returns an error table with the following fields:
+
+```squirrel
+{
+    "code": const - the error code (see below)
+    "msg": string - description of error
+}
+```
+
+The code will be one of the following values:
+
+| Code                        | Meaning                      |
+| --------------------------- | ---------------------------- |
+| Onewire.READ_ERR_NO_DEVICES | No 1-Wire devices connected. |
+| Onewire.READ_ERR_NO_BUS     | No 1-Wire circuit detected.  |
+
+```squirrel
+if (ow.reset()) {
+    // Valid 1-Wire bus detected
+    local temp = getTemperatureReading();
+} else {
+    // Display error code on LED
+    local err = ow.getErrorCode();
+    if (err.code == Onewire.READ_ERR_NO_DEVICES) {
+        server.log("No Devices on Onewire Bus.");
+    } else if (err.code == Onewire.READ_ERR_NO_BUS) {
+        server.log("Couldn't Initialize Onewire Bus");
+    } else {
+        // Should never get here..
+        server.log(err.msg);
+    }
+}
+```
 
 ### writeByte(*byte*)
 
