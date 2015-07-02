@@ -118,7 +118,7 @@ if (success == 0) {
 
 ### getErrorCode()
 
-This method returns error information arising from the last bus reset; if [*reset()*](#reset) returns `false`, you can use this method to learn more about the cause of the failure. *getErrorCode()* returns a table with two keys, *code* and *msg*:
+This method returns error information arising from the last bus reset; if [*init()*](#init) or [*reset()*](#reset) returns `false`, you can use this method to learn more about the cause of the failure. *getErrorCode()* returns a table with two keys, *code* and *msg*:
 
 | Code | Message |
 | --- | --- |
