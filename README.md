@@ -26,16 +26,11 @@ ow <- Onewire(hardware.uart12);
 
 Call this method to prepare the 1-Wire/UART bus for use. It resets the bus and enumerates the bus’ devices.
 
-It returns 0 for success, or an error code to indicate a bus-read failure:
-
-| Code | Meaning |
-| --- | --- |
-| 1 | No 1-Wire devices connected. |
-| 2 | No 1-Wire circuit detected. |
+It returns `true` for success, or `false` to indicate a bus-read failure:
 
 ```squirrel
 local success = ow.init();
-if (success != 0) {
+if (success) {
   // Report error. Note if the Onewire object instantiated in
   // debug mode, the object will report errors
   server.log("1-Wire error.");
@@ -62,28 +57,28 @@ if (ow.reset()) {
 }
 ```
 
-### listSlaves()
+### discoverDevices()
 
 This method enumerates all the 1-Wire devices on the bus, storing connected devices’ unique IDs internally. See the further methods below for means to access these devices. It is implicitly called by [*init()*](#init).
 
 ```squirrel
 if (ow.reset()) {
   // Valid 1-Wire bus detected, so enumerate the bus
-  ow.listSlaves();
+  ow.discoverDevices();
 } else {
   // Display error code on LED
   local err = ow.getErrorCode();
-  led.display("Error: " + err);
+  led.display("Error: " + err.msg);
 }
 ```
 
 ### getDeviceCount()
 
-This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called [*init()*](#init) or [*reset()*](#reset) and [*listSlaves()*](#listslaves).
+This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called [*init()*](#init) or [*reset()*](#reset) and [*discoverDevices()*](#discoverdevices).
 
 ```squirrel
 local success = ow.init();
-if (success == 0) {
+if (success) {
   local n = ow.getDeviceCount();
   server.log("You have " + n + " 1-Wire devices connected to your imp.");
 }
@@ -91,11 +86,11 @@ if (success == 0) {
 
 ### getDevices()
 
-This method returns an array in which the ID of each device on the 1-Wire bus is stored. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using [*init()*](#init) or [*listSlaves()*](#listslaves)).
+This method returns an array in which the ID of each device on the 1-Wire bus is stored. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using [*init()*](#init) or [*discoverDevices()*](#discoverdevices)).
 
 ```squirrel
 local success = ow.init();
-if (success == 0) {
+if (success) {
   local devices = ow.getDevices();
   if (devices.len() > 0) {
     foreach (index, device in devices)
@@ -123,7 +118,15 @@ if (success == 0) {
 
 ### getErrorCode()
 
-This method returns any error code (or 0 if there was no error) from the last bus reset. See [*reset()*](#reset), above, for example code.
+This method returns error information arising from the last bus reset; if [*reset()*](#reset) returns `false`, you can use this method to learn more about the cause of the failure. *getErrorCode()* returns a table with two keys, *code* and *msg*:
+
+| Code | Message |
+| --- | --- |
+| 0 | No error. |
+| 1 | No 1-Wire devices connected. |
+| 2 | No 1-Wire circuit detected. |
+
+See [*reset()*](#reset), above, for example code.
 
 ### writeByte(*byte*)
 
