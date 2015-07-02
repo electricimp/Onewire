@@ -3,16 +3,19 @@ class Onewire
     static version = [1,0,0];
 
     // errors
+    static READ_NO_ERR = 0;
     static READ_ERR_NO_DEVICES = 1;
     static READ_ERR_NO_BUS = 2;
-    static READ_ERR_NO_DEVICES_MESSAGE = "Error: No 1-Wire device connected.";
-    static READ_ERR_NO_BUS_MESSAGE = "Error: No 1-Wire circuit detected.";
+    static READ_NO_ERR_MESSAGE = "No Error.";
+    static READ_ERR_NO_DEVICES_MESSAGE = "No 1-Wire device connected.";
+    static READ_ERR_NO_BUS_MESSAGE = "No 1-Wire circuit detected.";
 
     _uart = null;
     _currentId = null;
     _devices = null;
     _nextDevice = 0;
-    _readErrorReason = 0;
+    _readErrorReason = READ_NO_ERR;
+    _errs = null;
     _debugFlag = false;
 
     constructor (impUart = null, debug = false) {
@@ -22,13 +25,15 @@ class Onewire
         _devices = [];
         _currentId = [];
         _debugFlag = debug;
+        _errs = [READ_NO_ERR_MESSAGE, READ_ERR_NO_DEVICES_MESSAGE, READ_ERR_NO_BUS_MESSAGE];
     }
 
     function init() {
         // Reset and test the bus; if it's good, enumerate the devices on the bus
+        // Returns true if the initialization is successful, false if not
         if (reset()) discoverDevices();
-        if (_debugFlag && _readErrorReason != 0) server.log("1-Wire read error: " + _readErrorReason);
-        return _readErrorReason == 0;
+        if (_debugFlag && _readErrorReason != READ_NO_ERR) server.log("1-Wire read error: " + _readErrorReason);
+        return (_readErrorReason == READ_NO_ERR);
     }
 
     function reset() {
@@ -36,7 +41,7 @@ class Onewire
         // Returns true only if there is at least one valid 1-Wire device connected
         // On error, a reason code is saved in _readErrorReason, and this can be
         // read using getErrorCode()
-        _readErrorReason = 0;
+        _readErrorReason = READ_NO_ERR;
 
         // Configure UART for 1-Wire RESET timing
         _uart.configure(9600, 8, PARITY_NONE, 1, NO_CTSRTS);
@@ -56,7 +61,7 @@ class Onewire
             return false;
         } else {
             // Switch UART to 1-Wire data speed timing
-            _readErrorReason = 0;
+            _readErrorReason = READ_NO_ERR;
             if (_debugFlag) server.log("Success: 1-Wire device(s) discovered.");
             _uart.configure(115200, 8, PARITY_NONE, 1, NO_CTSRTS);
             return true;
@@ -97,9 +102,12 @@ class Onewire
     }
 
     function getErrorCode() {
-        // Returns the current read error code; this is zero'd
+        // Returns the current read error information; this is cleared
         // every time reset() is called
-        return _readErrorReason;
+        local err = {};
+        err.code <- _readErrorReason;
+        err.msg <- _errs[_readErrorReason];
+        return err;
     }
 
     function writeByte(byte) {
@@ -166,7 +174,6 @@ class Onewire
         local lastForkPoint = 0;
 
         // Reset the bus and exit if no device found
-
         if (reset()) {
             // If there are 1-Wire device(s) on the bus - for which one_wire_reset()
             // checks - this function readies them by issuing the 1-Wire SEARCH command (0xF0)
