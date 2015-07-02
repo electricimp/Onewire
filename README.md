@@ -44,7 +44,7 @@ if (success) {
 
 This method reset the 1-Wire bus and checks for connected devices, but does not enumerate them. It returns `true` if it detects a 1-Wire bus with one or more 1-Wire peripherals, `false` otherwise. It is implicitly called by *init()*.
 
-*reset()* clears and, in it encounters an error, an internal error record. If a call to *reset()* returns `false`, this error record can be read using the method *getErrorCode()*.
+*reset()* clears and, in it encounters an error, an internal error record. If a call to *reset()* returns `false`, this error record can be read using the method [*getErrorCode()*](#geterrorcode).
 
 ```squirrel
 if (ow.reset()) {
