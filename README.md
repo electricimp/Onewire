@@ -107,7 +107,7 @@ This method returns the ID of the device at index *deviceIndex* in the list, or 
 
 ```squirrel
 local success = ow.init();
-if (success == 0) {
+if (success) {
   local numDevs = getDeviceCount();
   for (local i = 0 ; i < numDevs ; i++) {
     local device = ow.getDevice();
@@ -197,10 +197,10 @@ foreach (index, device in devices) {
     }
  
     // Issue the DS18B20's READ SCRATCHPAD command (0xBE) to get temperature
-    ow.riteByte(0xBE);
+    ow.writeByte(0xBE);
 
     // Read the temperature value from the sensor's RAM
-    local tempLSB = ow.eadByte();
+    local tempLSB = ow.readByte();
     local tempMSB = ow.readByte();
 
     // Signal that we don't need any more data by resetting the bus
