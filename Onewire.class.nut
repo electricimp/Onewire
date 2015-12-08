@@ -52,7 +52,7 @@ class Onewire
         if (readVal == 0xF0) {
             // UART RX will read TX if there are no devices connected
             _readErrorReason = READ_ERR_NO_DEVICES;
-            if (_debugFlag) server.log(READ_ERR_NO_DEVICE_MESSAGE);
+            if (_debugFlag) server.log(READ_ERR_NO_DEVICES_MESSAGE);
             return false;
         } else if (readVal == -1) {
             // A general UART read error - most likely nothing wired up
