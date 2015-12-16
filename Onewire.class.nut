@@ -1,6 +1,6 @@
 class Onewire
 {
-    static version = [1,0,0];
+    static version = [1,0,1];
 
     // errors
     static READ_NO_ERR = 0;
