@@ -4,7 +4,7 @@ The Onewire class library provides a means to interact with 1-Wire devices conne
 
 The class provides a means to enumerate all the 1-Wire devices connected to the host imp, and to communicate with any one of them. It provides methods for the five key 1-Wire bus commands.
 
-**To add this library to your project, add** `#require "Onewire.class.nut:1.0.0"` **to the top of your device code**
+**To add this library to your project, add** `#require "Onewire.class.nut:1.0.1"` **to the top of your device code**
 
 ## Class Usage
 
@@ -17,7 +17,7 @@ Optionally, you may also pass a debugging flag: pass `true` to trigger debug log
 The constructor returns `null` if no UART bus is passed into it.
 
 ```squirrel
-#require "Onewire.class.nut:1.0.0"
+#require "Onewire.class.nut:1.0.1"
 
 ow <- Onewire(hardware.uart12);
 ```
