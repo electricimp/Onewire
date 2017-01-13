@@ -1,20 +1,22 @@
 # Onewire
 
-The Onewire class library provides a means to interact with 1-Wire devices connected to an imp via a UART bus. For more information on connecting 1-Wire devices this way, see [‘Implementing a 1-Wire Bus on the imp’](https://electricimp.com/docs/resources/onewire/).
+The Onewire library provides a means to interact with 1-Wire&reg; devices connected to an imp via UART. For more information on connecting 1-Wire devices this way, see [‘Implementing a 1-Wire Bus on the imp’](https://electricimp.com/docs/resources/onewire/).
 
-The class provides a means to enumerate all the 1-Wire devices connected to the host imp, and to communicate with any one of them. It provides methods for the five key 1-Wire bus commands.
+The library provides a means to enumerate all of the 1-Wire devices connected to the host imp, and to communicate with any one of them. It also provides methods for the five key 1-Wire bus commands.
 
 **To add this library to your project, add** `#require "Onewire.class.nut:1.0.1"` **to the top of your device code**
 
 ## Class Usage
 
-### Constructor: Onewire(*impUart,* [*debug*])
+### Constructor: Onewire(*impUart[, debug]*)
 
 To instantiate a new Onewire object, just pass the imp [UART bus object](https://electricimp.com/docs/api/hardware/uart/) you are using to drive your 1-Wire device(s). This bus should **not** be pre-configured; the class will apply two separate configuations &ndash; one for testing the bus, another for interacting with devices &ndash; while it is running.
 
 Optionally, you may also pass a debugging flag: pass `true` to trigger debug log messages. This is `false` by default.
 
 The constructor returns `null` if no UART bus is passed into it.
+
+To begin using the 1-Wire device(s), you must call the library’s *init()* method.
 
 ```squirrel
 #require "Onewire.class.nut:1.0.1"
@@ -26,28 +28,29 @@ ow <- Onewire(hardware.uart12);
 
 ### init()
 
-Call this method to prepare the 1-Wire/UART bus for use. It resets the bus and discovers the bus’ devices.
+Call this method to prepare the 1-Wire/UART bus for use. It resets the bus and discovers whatever devices are connected to the bus.
 
-It returns `true` if the bus was successfully initialized (and had devices), and `false` otherwise. If the init() method returns `false`, you can call *getErrorCode* for more information.
+The call returns `true` if the bus was successfully initialized, and `false` otherwise. If *init()* returns `false`, you can call *getErrorCode()* for more information.
 
 ```squirrel
 local success = ow.init();
+
 if (!success) {
     // Report error. Note if the Onewire object instantiated in
     // debug mode, the object will report errors
     local err = ow.getErrorCode();
-    server.log(err.msg);
+    server.error(err.msg);
     return;
 }
-// Perform tasks on the 1-Wire bus...
 
+// Perform tasks on the 1-Wire bus...
 ```
 
 ### reset()
 
-This method reset the 1-Wire bus and checks for connected devices, but does not enumerate them. It returns `true` if it detects a 1-Wire bus with one or more 1-Wire devices, `false` otherwise. It is implicitly called by *init()*.
+This method resets the 1-Wire bus and checks for connected devices, but does not enumerate them. It returns `true` if it detects a 1-Wire bus with one or more 1-Wire devices, `false` otherwise. It is implicitly called by [*init()*](#init).
 
-*reset()* clears and, in it encounters an error, an internal error record. If a call to *reset()* returns `false`, this error record can be read using the method *getErrorCode()*.
+If a call to *reset()* returns `false`, the error record relating to the reset failure can be read using the method *getErrorCode()*.
 
 ```squirrel
 if (ow.reset()) {
@@ -62,13 +65,13 @@ if (ow.reset()) {
 
 ### discoverDevices()
 
-This method enumerates all the 1-Wire devices on the bus, storing connected devices’ unique IDs internally. See the further methods below for means to access these devices. It is implicitly called by [*init()*](#init).
+This method enumerates all the 1-Wire devices on the bus and returns an array of the discovered devices’ IDs. This array can be also accessed later using *getDevices()*. See the further methods below for means to access these devices. It is implicitly called by [*init()*](#init).
 
 ```squirrel
 if (ow.reset()) {
     // Valid 1-Wire bus detected, so enumerate the bus
     devices = ow.discoverDevices();
-    server.log(devices.len() + " devices discovered!");
+    server.log(devices.len() + " devices discovered");
 } else {
     // Display error code on LED
     local err = ow.getErrorCode();
@@ -78,19 +81,19 @@ if (ow.reset()) {
 
 ### getDeviceCount()
 
-This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called [*init()*](#init) or [*reset()*](#reset) and [*discoverDevices()*](#listdevices).
+This method returns the number of 1-Wire devices on the bus. Note that this will be zero if you have not first called [*init()*](#init), or [*reset()*](#reset) and [*discoverDevices()*](#discoverDevices).
 
 ```squirrel
 local success = ow.init();
 if (success) {
     local n = ow.getDeviceCount();
-    server.log("You have " + n + " 1-Wire devices connected to your imp.");
+    server.log("You have " + n + " 1-Wire devices connected");
 }
 ```
 
 ### getDevices()
 
-This method returns an array in which the ID of each device on the 1-Wire bus is stored. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using [*init()*](#init) or [*discoverDevices()*](#listdevices)).
+This method returns the class’ stored array containing the ID of each device on the 1-Wire bus that it has already discovered. If the returned array is empty, there are either no devices on the bus or your code has yet to enumerate them (using [*init()*](#init) or [*discoverDevices()*](#discoverDevices)).
 
 ```squirrel
 local success = ow.init();
@@ -98,7 +101,7 @@ if (success) {
     local devices = ow.getDevices();
     if (devices.len() > 0) {
         foreach (index, device in devices) {
-            server.log("Device " + index + ": " + device);
+            server.log("Device " + index + " ID: " + device);
         }
     }
 }
@@ -106,36 +109,34 @@ if (success) {
 
 ### getDevice(*deviceIndex*)
 
-This method returns the ID of the device at index *deviceIndex* in the list, or `null` if the value of *deviceIndex* is out of range.
+This method returns the ID of the device at index *deviceIndex* in the class’ list of discovered devices, or `null` if the value of *deviceIndex* is out of range.
 
 ```squirrel
 local success = ow.init();
 if (success) {
     local numDevs = getDeviceCount();
-    for (local i = 0 ; i < numDevs ; i++) {
-        local device = ow.getDevice();
-        server.log("Device " + index + ": " + device);
+    for (local i = 0 ; i < numDevs ; ++i) {
+        local device = ow.getDevice(i);
+        server.log("Device " + index + " ID: " + device);
     }
 }
 ```
 
 ### getErrorCode()
 
-This method returns an error table with the following fields:
+This method returns an error table with the following keys:
 
-```squirrel
-{
-    "code": const - the error code (see below)
-    "msg": string - description of error
-}
-```
+| Key | Description |
+| --- | --- |
+| *code* | The error code (see below) |
+| *msg* | Human-readable error message |
 
-The code will be one of the following values:
+&nbsp;<br>The code will be one of the following values:
 
-| Code                        | Meaning                      |
-| --------------------------- | ---------------------------- |
-| Onewire.READ_ERR_NO_DEVICES | No 1-Wire devices connected. |
-| Onewire.READ_ERR_NO_BUS     | No 1-Wire circuit detected.  |
+| Code Value | Meaning |
+| --- | --- |
+| Onewire.READ_ERR_NO_DEVICES | No 1-Wire devices connected |
+| Onewire.READ_ERR_NO_BUS     | No 1-Wire circuit detected  |
 
 ```squirrel
 if (ow.reset()) {
@@ -144,14 +145,7 @@ if (ow.reset()) {
 } else {
     // Display error code on LED
     local err = ow.getErrorCode();
-    if (err.code == Onewire.READ_ERR_NO_DEVICES) {
-        server.log("No Devices on Onewire Bus.");
-    } else if (err.code == Onewire.READ_ERR_NO_BUS) {
-        server.log("Couldn't Initialize Onewire Bus");
-    } else {
-        // Should never get here..
-        server.log(err.msg);
-    }
+    server.error("1-Wire Error " + err.code + ": " + err.msg);
 }
 ```
 
@@ -211,27 +205,27 @@ This method writes the 1-Wire command ‘Match ROM’ to the bus. This indicates
 local devices = ow.getDevices();
 foreach (index, device in devices) {
     // Run through the list of discovered devices, getting the temperature
-    // if a given device is of the correct family number: 0x28 for BS18B20
+    // if a given device is of the correct family number: 0x28 for BS18B20 sensor
     if (device[7] == 0x28) {
         ow.reset();
 
         // Issue 1-Wire MATCH ROM command to select device by ID
         ow.matchRom();
 
-        // Write out the 64-bit ID from the array's eight bytes
+        // Write out the 64-bit ID from the 'device' array's eight bytes
         for (local i = 7 ; i >= 0 ; i--) {
             ow.writeByte(device[i]);
         }
 
         // Issue the DS18B20's READ SCRATCHPAD command (0xBE) to get temperature
-        ow.riteByte(0xBE);
+        ow.writeByte(0xBE);
 
         // Read the temperature value from the sensor's RAM
-        local tempLSB = ow.eadByte();
+        local tempLSB = ow.readByte();
         local tempMSB = ow.readByte();
 
         // Signal that we don't need any more data by resetting the bus
-        onewireReset();
+        ow.Reset();
 
         // Calculate the temperature from LSB and MSB
         local tempCelsius = ((tempMSB * 256) + tempLSB) / 16.0;
