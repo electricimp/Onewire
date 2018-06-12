@@ -1,8 +1,30 @@
-class Onewire
-{
-    static version = [1,0,1];
+// The MIT License (MIT)
+// 
+// Copyright (c) 2015-18 Electric Imp
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+    
+class Onewire {
+    
+    static version = "1.0.1";
 
-    // errors
+    // Errors and error messages
     static READ_NO_ERR = 0;
     static READ_ERR_NO_DEVICES = 1;
     static READ_ERR_NO_BUS = 2;
@@ -10,38 +32,41 @@ class Onewire
     static READ_ERR_NO_DEVICES_MESSAGE = "No 1-Wire device connected.";
     static READ_ERR_NO_BUS_MESSAGE = "No 1-Wire circuit detected.";
 
+    // Properties
     _uart = null;
     _currentId = null;
     _devices = null;
     _nextDevice = 0;
-    _readErrorReason = 0;
-    _errs = null;
-    _debugFlag = false;
+    _readError = 0;
+    _errors = null;
+    _debug = false;
 
-    constructor (impUart = null, debug = false) {
-        if (impUart == null) return null;
+    constructor (uart = null, debug = false) {
+        if (impUart == null) {
+            if (debug) server.error("The Onewire class require a valid imp UART");
+            return null;
+        }
 
-        _uart = impUart;
+        _uart = uart;
         _devices = [];
         _currentId = [];
-        _debugFlag = debug;
-        _errs = [READ_NO_ERR_MESSAGE, READ_ERR_NO_DEVICES_MESSAGE, READ_ERR_NO_BUS_MESSAGE];
+        _debug = debug;
+        _errors = [READ_NO_ERR_MESSAGE, READ_ERR_NO_DEVICES_MESSAGE, READ_ERR_NO_BUS_MESSAGE];
     }
 
     function init() {
         // Reset and test the bus; if it's good, enumerate the devices on the bus
         // Returns true if the initialization is successful, false if not
         if (reset()) discoverDevices();
-        if (_debugFlag && _readErrorReason != READ_NO_ERR) server.log("1-Wire read error: " + _readErrorReason);
-        return (_readErrorReason == READ_NO_ERR);
+        if (_debug && _readError != READ_NO_ERR) server.log("1-Wire read error: " + _errors[_readError]);
+        return (_readError == READ_NO_ERR);
     }
 
     function reset() {
         // Reset the 1-Wire bus and check for connected devices
         // Returns true only if there is at least one valid 1-Wire device connected
-        // On error, a reason code is saved in _readErrorReason, and this can be
+        // On error, a reason code is saved in _readError, and this can be
         // read using getErrorCode()
-        _readErrorReason = READ_NO_ERR;
 
         // Configure UART for 1-Wire RESET timing
         _uart.configure(9600, 8, PARITY_NONE, 1, NO_CTSRTS);
@@ -51,19 +76,19 @@ class Onewire
 
         if (readVal == 0xF0) {
             // UART RX will read TX if there are no devices connected
-            _readErrorReason = READ_ERR_NO_DEVICES;
-            if (_debugFlag) server.log(READ_ERR_NO_DEVICES_MESSAGE);
+            _readError = READ_ERR_NO_DEVICES;
+            if (_debug) server.log(READ_ERR_NO_DEVICES_MESSAGE);
             return false;
         } else if (readVal == -1) {
             // A general UART read error - most likely nothing wired up
-            _readErrorReason = READ_ERR_NO_BUS;
-            if (_debugFlag) server.log(READ_ERR_NO_BUS_MESSAGE);
+            _readError = READ_ERR_NO_BUS;
+            if (_debug) server.log(READ_ERR_NO_BUS_MESSAGE);
             return false;
         } else {
             // Switch UART to 1-Wire data speed timing
-            _readErrorReason = READ_NO_ERR;
-            if (_debugFlag) server.log("Success: 1-Wire device(s) discovered.");
             _uart.configure(115200, 8, PARITY_NONE, 1, NO_CTSRTS);
+            _readError = READ_NO_ERR;
+            if (_debug) server.log("Success: 1-Wire device(s) discovered.");
             return true;
         }
     }
@@ -76,12 +101,13 @@ class Onewire
 
         // Begin the enumeration at address 65
         _nextDevice = 65;
+
         while (_nextDevice > 0) {
             _nextDevice = _search(_nextDevice);
             _devices.push(clone(_currentId));
         }
-        if (_debugFlag) server.log(_devices.len() + " 1-Wire device(s) discovered.");
 
+        if (_debug) server.log(_devices.len() + " 1-Wire device(s) discovered.");
         return _devices;
     }
 
@@ -104,15 +130,15 @@ class Onewire
     function getErrorCode() {
         // Returns the current read error information; this is cleared
         // every time reset() is called
-        local err = {};
-        err.code <- _readErrorReason;
-        err.msg <- _errs[_readErrorReason];
-        return err;
+        local error = {};
+        error.code <- _readError;
+        error.msg <- _errors[_readError];
+        return error;
     }
 
     function writeByte(byte) {
         // Write a byte of data or a command to the 1-Wire bus
-        for (local i = 0 ; i < 8 ; i++, byte = byte >> 1) {
+        for (local i = 0 ; i < 8 ; ++i, byte = byte >> 1) {
             // Run through the bits in the byte, extracting the
             // LSB (bit 0) and sending it to the bus
             _readWriteBit(byte & 0x01);
@@ -122,7 +148,7 @@ class Onewire
     function readByte() {
         // Read a byte from the 1-Wire bus
         local byte = 0;
-        for (local b = 0 ; b < 8 ; b++) {
+        for (local b = 0 ; b < 8 ; ++b) {
             // Build up byte bit by bit, LSB first
             byte = (byte >> 1) + 0x80 * _readWriteBit(1);
         }
@@ -161,12 +187,11 @@ class Onewire
         bit = bit ? 0xFF : 0x00;
         _uart.write(bit);
         _uart.flush();
-        local returnVal = _uart.read() == 0xFF ? 1 : 0;
-        return returnVal;
+        local rv = _uart.read() == 0xFF ? 1 : 0;
+        return rv;
     }
 
-    function _search(nextNode)
-    {
+    function _search(nextNode) {
         // Device enumeration support function. Progresses one step up the tree
         // from the current device, returning the next current device along.
         // Called by discoverDevices()
