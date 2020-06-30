@@ -16,7 +16,7 @@ The library provides a means to enumerate all of the 1-Wire devices connected to
 
 ### Constructor: Onewire(*impUart[, debug]*) ###
 
-To instantiate a new Onewire object, just pass the imp [UART bus object](https://developer.electricimp.com/api/hardware/uart) you are using to drive your 1-Wire device(s). This bus should **not** be pre-configured; the class will apply two separate configuations &ndash; one for testing the bus, another for interacting with devices &ndash; while it is running.
+To instantiate a new Onewire object, just pass the imp [UART bus object](https://developer.electricimp.com/api/hardware/uart) you are using to drive your 1-Wire device(s). This bus should **not** be pre-configured; the class will apply two separate configurations &ndash; one for testing the bus, another for interacting with devices &ndash; while it is running.
 
 Optionally, you may also pass a debugging flag: pass `true` to trigger debug log messages. This is `false` by default.
 
