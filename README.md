@@ -1,10 +1,16 @@
-# Onewire #
+# Onewire 1.0.1 #
 
-The Onewire library provides a means to interact with 1-Wire&reg; devices connected to an imp via UART. For more information on connecting 1-Wire devices this way, see [‘Implementing a 1-Wire Bus on the imp’](https://developer.electricimp.com/resources/onewire).
+The Onewire library provides a means to interact with 1-Wire&reg; devices connected to an imp via UART. For more information on connecting 1-Wire devices this way, see [**Implementing A 1-Wire Bus On The imp**’**](https://developer.electricimp.com/resources/onewire).
 
 The library provides a means to enumerate all of the 1-Wire devices connected to the host imp, and to communicate with any one of them. It also provides methods for the five key 1-Wire bus commands.
 
-**To add this library to your project, add** `#require "Onewire.class.nut:1.0.1"` **to the top of your device code**
+**To include this library in your project, add**
+
+```
+#require "Onewire.class.nut:1.0.1"
+```
+
+**at the top of your device code**
 
 ## Class Usage ##
 
@@ -36,11 +42,11 @@ The call returns `true` if the bus was successfully initialized, and `false` oth
 local success = ow.init();
 
 if (!success) {
-  // Report error. Note if the Onewire object instantiated in
-  // debug mode, the object will report errors
-  local err = ow.getErrorCode();
-  server.error(err.msg);
-  return;
+    // Report error. Note if the Onewire object instantiated in
+    // debug mode, the object will report errors
+    local err = ow.getErrorCode();
+    server.error(err.msg);
+    return;
 }
 
 // Perform tasks on the 1-Wire bus...
@@ -54,12 +60,12 @@ If a call to *reset()* returns `false`, the error record relating to the reset f
 
 ```squirrel
 if (ow.reset()) {
-  // Valid 1-Wire bus detected
-  local temp = getTemperatureReading();
+    // Valid 1-Wire bus detected
+    local temp = getTemperatureReading();
 } else {
-  // Display error code on LED
-  local err = ow.getErrorCode();
-  led.display("Error: " + err.msg);
+    // Display error code on LED
+    local err = ow.getErrorCode();
+    led.display("Error: " + err.msg);
 }
 ```
 
@@ -69,13 +75,13 @@ This method enumerates all the 1-Wire devices on the bus and returns an array of
 
 ```squirrel
 if (ow.reset()) {
-  // Valid 1-Wire bus detected, so enumerate the bus
-  devices = ow.discoverDevices();
-  server.log(devices.len() + " devices discovered");
+    // Valid 1-Wire bus detected, so enumerate the bus
+    devices = ow.discoverDevices();
+    server.log(devices.len() + " devices discovered");
 } else {
-  // Display error code on LED
-  local err = ow.getErrorCode();
-  led.display("Error: " + err);
+    // Display error code on LED
+    local err = ow.getErrorCode();
+    led.display("Error: " + err);
 }
 ```
 
@@ -86,8 +92,8 @@ This method returns the number of 1-Wire devices on the bus. Note that this will
 ```squirrel
 local success = ow.init();
 if (success) {
-  local n = ow.getDeviceCount();
-  server.log("You have " + n + " 1-Wire devices connected");
+    local n = ow.getDeviceCount();
+    server.log("You have " + n + " 1-Wire devices connected");
 }
 ```
 
@@ -98,12 +104,12 @@ This method returns the class’ stored array containing the ID of each device o
 ```squirrel
 local success = ow.init();
 if (success) {
-  local devices = ow.getDevices();
-  if (devices.len() > 0) {
-    foreach (index, device in devices) {
-      server.log("Device " + index + " ID: " + device);
+    local devices = ow.getDevices();
+    if (devices.len() > 0) {
+        foreach (index, device in devices) {
+            server.log("Device " + index + " ID: " + device);
+        }
     }
-  }
 }
 ```
 
@@ -114,8 +120,8 @@ This method returns the ID of the device at index *deviceIndex* in the class’ 
 ```squirrel
 local success = ow.init();
 if (success) {
-    local numDevs = getDeviceCount();
-    for (local i = 0 ; i < numDevs ; ++i) {
+    local numberOfDevices = getDeviceCount();
+    for (local i = 0 ; i < numberOfDevices ; i++) {
         local device = ow.getDevice(i);
         server.log("Device " + index + " ID: " + device);
     }
@@ -142,18 +148,18 @@ The code will be one of the following values:
 
 ```squirrel
 if (ow.reset()) {
-  // Valid 1-Wire bus detected
-  local temp = getTemperatureReading();
+    // Valid 1-Wire bus detected
+    local temp = getTemperatureReading();
 } else {
-  // Display error code on LED
-  local err = ow.getErrorCode();
-  server.error("1-Wire Error " + err.code + ": " + err.msg);
+    // Display error code on LED
+    local err = ow.getErrorCode();
+    server.error("1-Wire Error " + err.code + ": " + err.msg);
 }
 ```
 
 ### writeByte(*byte*) ###
 
-This method writes the supplied byte value to the 1-Wire bus. The value of *byte* is tyically an integer; the method only writes the first eight bits of the 32-bit Squirrel integer.
+This method writes the supplied byte value to the 1-Wire bus. The value of *byte* is typically an integer; the method only writes the first eight bits of the 32-bit Squirrel integer.
 
 #### Example ####
 
@@ -180,8 +186,8 @@ This method reads a eight bits of data from the 1-Wire bus and returns it as an 
 
 ```squirrel
 // Read the temperature
-local tempLSB = onew.readByte();
-local tempMSB = onew.readByte();
+local tempLSB = ow.readByte();
+local tempMSB = ow.readByte();
 ```
 
 ### skipRom() ###
@@ -214,33 +220,33 @@ This method writes the 1-Wire command ‘Match ROM’ to the bus. This indicates
 ```squirrel
 local devices = ow.getDevices();
 foreach (index, device in devices) {
-  // Run through the list of discovered devices, getting the temperature
-  // if a given device is of the correct family number: 0x28 for BS18B20 sensor
-  if (device[7] == 0x28) {
-    ow.reset();
+    // Run through the list of discovered devices, getting the temperature
+    // if a given device is of the correct family number: 0x28 for BS18B20 sensor
+    if (device[7] == 0x28) {
+        ow.reset();
 
-    // Issue 1-Wire MATCH ROM command to select device by ID
-    ow.matchRom();
+        // Issue 1-Wire MATCH ROM command to select device by ID
+        ow.matchRom();
 
-    // Write out the 64-bit ID from the 'device' array's eight bytes
-    for (local i = 7 ; i >= 0 ; i--) {
-      ow.writeByte(device[i]);
+        // Write out the 64-bit ID from the 'device' array's eight bytes
+        for (local i = 7 ; i >= 0 ; i--) {
+            ow.writeByte(device[i]);
+        }
+
+        // Issue the DS18B20's READ SCRATCHPAD command (0xBE) to get temperature
+        ow.writeByte(0xBE);
+
+        // Read the temperature value from the sensor's RAM
+        local tempLSB = ow.readByte();
+        local tempMSB = ow.readByte();
+
+        // Signal that we don't need any more data by resetting the bus
+        ow.Reset();
+
+        // Calculate the temperature from LSB and MSB
+        local tempCelsius = ((tempMSB * 256) + tempLSB) / 16.0;
+        server.log("The temperature is " + tempCelsius + "C");
     }
-
-    // Issue the DS18B20's READ SCRATCHPAD command (0xBE) to get temperature
-    ow.writeByte(0xBE);
-
-    // Read the temperature value from the sensor's RAM
-    local tempLSB = ow.readByte();
-    local tempMSB = ow.readByte();
-
-    // Signal that we don't need any more data by resetting the bus
-    ow.Reset();
-
-    // Calculate the temperature from LSB and MSB
-    local tempCelsius = ((tempMSB * 256) + tempLSB) / 16.0;
-    server.log("The temperature is " + tempCelsius + "C");
-  }
 }
 ```
 
