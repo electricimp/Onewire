@@ -1,6 +1,6 @@
 # Onewire 1.0.1 #
 
-The Onewire library provides a means to interact with 1-Wire&reg; devices connected to an imp via UART. For more information on connecting 1-Wire devices this way, see [**Implementing A 1-Wire Bus On The imp**’**](https://developer.electricimp.com/resources/onewire).
+The Onewire library provides a means to interact with 1-Wire&reg; devices connected to an imp via UART. For more information on connecting 1-Wire devices this way, see [**Implementing A 1-Wire Bus On The imp**](https://developer.electricimp.com/resources/onewire).
 
 The library provides a means to enumerate all of the 1-Wire devices connected to the host imp, and to communicate with any one of them. It also provides methods for the five key 1-Wire bus commands.
 
